@@ -1,0 +1,37 @@
+---
+kind: pipeline
+name: Windows 2022 Build
+
+platform:
+  os: windows
+  arch: amd64
+  version: 21H2
+
+steps:
+- name: build
+  image: golang:1.19
+  pull: never
+  commands:
+  - go build -o release/windows/amd64/drone-runner-docker.exe
+  environment:
+    CGO_ENABLED: 0
+
+- name: docker
+  image: plugins/docker
+  pull: never
+  settings:
+    auto_tag: true
+    auto_tag_suffix: windows-21H2-amd64
+    daemon_off: true
+    dockerfile: docker/Dockerfile.windows.amd64.21H2
+    dry_run: true
+    purge: false
+    repo: drone/drone-runner-docker
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
